@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Coast Cover Studio — GTA 6-style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app">
+  <section class="controls">
+    <h1>Vice Coast<br>Cover Studio</h1>
+    <p class="tagline">Your photo + a caption, made into a Vice City sunset cover. Three steps, offline, nothing uploaded.</p>
+
+    <h2>1 · Photos</h2>
+    <div id="slots"></div>
+    <div class="row">
+      <button id="fill-all" type="button">One photo, all panels</button>
+      <button id="sample-pier" type="button">Sample: Pier</button>
+      <button id="sample-boulevard" type="button">Sample: Boulevard</button>
+    </div>
+    <p class="hint">Click a panel to select it, drag it to position the photo, scroll to zoom.</p>
+
+    <h2>2 · Words</h2>
+    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
+    <label>Subtitle <input id="subtitle" type="text" maxlength="40" value="Vice City"></label>
+
+    <h2>3 · Look</h2>
+    <label>Layout</label>
+    <div id="layouts" class="opts"></div>
+    <label>Colour grade</label>
+    <div id="grades" class="opts"></div>
+    <label>Export size</label>
+    <div id="sizes" class="opts"></div>
+    <label>Badge</label>
+    <div id="badges" class="opts"></div>
+    <label class="check"><input id="safezone" type="checkbox" checked> Show 5% safe-zone guides</label>
+
+    <button id="export" type="button" class="export">Export PNG</button>
+    <p id="status" role="status"></p>
+    <p class="fine">Original art, made offline in your browser. No Rockstar logo, artwork or font.</p>
+  </section>
+  <section class="preview">
+    <canvas id="cover" width="640" height="640" aria-label="Live cover preview"></canvas>
+  </section>
+</main>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

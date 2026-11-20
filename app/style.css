@@ -1,0 +1,33 @@
+@font-face { font-family: "Bebas Neue"; src: url("./fonts/BebasNeue-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Oswald"; src: url("./fonts/Oswald.ttf") format("truetype"); font-weight: 200 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Montserrat Alternates"; src: url("./fonts/MontserratAlternates-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Montserrat Alternates"; src: url("./fonts/MontserratAlternates-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
+
+html, body { margin: 0; min-height: 100%; background: #12041f; color: #f5eefc; font: 15px/1.45 "Montserrat Alternates", system-ui, sans-serif; }
+.app { display: flex; gap: 28px; align-items: flex-start; justify-content: center; padding: 28px; box-sizing: border-box; }
+.controls { display: flex; flex-direction: column; gap: 10px; width: 320px; flex-shrink: 0; }
+.controls h1 { margin: 0; font-family: "Bebas Neue", sans-serif; font-size: 52px; line-height: 0.95; letter-spacing: 1px; color: #fff; text-shadow: 0 0 18px #ff2e88, 0 0 42px rgba(255, 46, 136, 0.55); }
+.controls h2 { margin: 10px 0 0; font-family: "Oswald", sans-serif; font-size: 17px; letter-spacing: 2px; text-transform: uppercase; color: #ffe66d; }
+.tagline { margin: 0; color: #cdbce0; }
+.hint, .fine { margin: 0; font-size: 12.5px; color: #9d8bb5; }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
+label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; }
+input[type=text] { font: inherit; padding: 9px 10px; border: 1px solid #5b3a86; border-radius: 8px; background: #1d0b33; color: #fff; }
+input[type=file] { font: inherit; font-size: 12.5px; color: #cdbce0; }
+.slot { border: 1px dashed #5b3a86; border-radius: 8px; padding: 8px 10px; }
+#slots { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; font-weight: 700; padding: 9px 12px; border: 1px solid #5b3a86; border-radius: 8px; background: #241040; color: #f5eefc; cursor: pointer; }
+button:hover { border-color: #ff2e88; }
+button.active { background: #ff2e88; border-color: #ff2e88; color: #fff; box-shadow: 0 0 16px rgba(255, 46, 136, 0.6); }
+button.export { background: linear-gradient(90deg, #ff2e88, #ff7b3d); border: 0; font-size: 17px; padding: 13px; box-shadow: 0 0 22px rgba(255, 46, 136, 0.55); }
+#status { margin: 0; min-height: 1.2em; color: #7cf5d3; font-size: 13px; }
+.preview { position: sticky; top: 28px; }
+canvas { display: block; max-width: min(62vw, 640px); max-height: 82vh; width: auto; height: auto; box-shadow: 0 12px 44px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 46, 136, 0.35); background: #0d0218; cursor: grab; }
+canvas:active { cursor: grabbing; }
+body.shot-cover .controls { display: none; }
+body.shot-cover .app { padding: 0; }
+body.shot-cover .preview { position: static; }
+body.shot-cover canvas { max-width: none; max-height: none; width: 100vw; height: 100vh; box-shadow: none; }
+@media (max-width: 900px) { .app { flex-direction: column; align-items: center; } .controls { width: min(92vw, 420px); } }
