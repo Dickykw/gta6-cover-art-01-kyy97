@@ -1,8 +1,9 @@
-// Vice Coast Cover Studio — wires the editor page: pick photos per panel,
-// type the caption, choose layout / grade / size / badge, drag a panel's photo
-// to position it, scroll to zoom it, and export a PNG. A `?shot=` query sets
-// up a fixed scene for a screenshot instead (./shots.js).
-import { EXPORT_SIZES, LAYOUTS, GRADES, BADGES, panelRects, drawCover } from './cover.js';
+// Vice Coast Cover Studio — the editor page for gta6-cover-art-01.
+// Wires the controls (photo slots, caption, layout, grade, size, badge),
+// the live canvas preview, drag-to-pan / scroll-to-zoom per panel, and the
+// PNG export. A `?shot=` query loads a fixed scene for screenshots instead
+// (see ./shots.js); the shot scenes draw with the same renderCover engine.
+import { EXPORT_SIZES, LAYOUTS, GRADES, BADGES, layoutPanels, renderCover } from './cover.js';
 import { runShot } from './shots.js';
 
 const canvas = document.getElementById('cover');
@@ -11,7 +12,7 @@ const captionInput = document.getElementById('caption');
 const subtitleInput = document.getElementById('subtitle');
 
 const state = {
-  photos: [null, null, null, null], // one slot per panel, at most 4 (grid)
+  photos: [null, null, null, null], // one slot per panel; grid needs all four
   layout: 'triptych',
   gradeKey: 'sunset',
   sizeKey: 'square',
@@ -23,14 +24,14 @@ const state = {
 };
 
 function panelCount() {
-  return state.layout === 'grid' ? 4 : state.layout === 'fullbleed' ? 1 : 3;
+  return LAYOUTS[state.layout].panels;
 }
 
-function activePhotos() {
+function visiblePhotos() {
   return state.photos.slice(0, panelCount());
 }
 
-/** Loads an image from a URL, resolving once it can be drawn. */
+// Loads an image file or URL into an <img> that the canvas can draw.
 export function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -40,7 +41,7 @@ export function loadImage(url) {
   });
 }
 
-/** Waits until the vendored display fonts are usable on the canvas. */
+// Waits until the vendored display fonts are ready to draw on canvas.
 export async function loadFonts() {
   await Promise.all([
     document.fonts.load('100px "Bebas Neue"'),
@@ -51,6 +52,7 @@ export async function loadFonts() {
   await document.fonts.ready;
 }
 
+// The preview is the export size scaled to fit a 640px box.
 function previewSize() {
   const size = EXPORT_SIZES[state.sizeKey];
   const scale = 640 / Math.max(size.width, size.height);
@@ -58,41 +60,41 @@ function previewSize() {
 }
 
 function redraw() {
-  const coverMode = document.body.classList.contains('shot-cover');
+  const coverOnly = document.body.classList.contains('shot-cover');
   const size = EXPORT_SIZES[state.sizeKey];
-  const { width, height } = coverMode ? size : previewSize();
+  const { width, height } = coverOnly ? size : previewSize();
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
   }
-  drawCover(canvas, {
-    photos: activePhotos(),
+  renderCover(canvas, {
+    photos: visiblePhotos(),
     layout: state.layout,
     gradeKey: state.gradeKey,
     caption: state.caption,
     subtitle: state.subtitle,
     badge: BADGES[state.badgeKey],
   });
-  if (coverMode) return; // the exported cover carries no editor guides
+  if (coverOnly) return; // exported covers carry no editor guides
   if (state.showSafeZone) drawSafeZone();
-  markSelectedPanel();
+  outlineSelectedPanel();
 }
 
-/** 5% safe-zone guides on the preview only — never in the export. */
+// 5% safe-zone guides on the preview only — never in the export.
 function drawSafeZone() {
   const ctx = canvas.getContext('2d');
   const m = canvas.width * 0.05;
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 240, 255, 0.85)';
+  ctx.strokeStyle = 'rgba(0,240,255,0.9)';
   ctx.lineWidth = 1;
-  ctx.setLineDash([6, 5]);
+  ctx.setLineDash([7, 5]);
   ctx.strokeRect(m, m, canvas.width - m * 2, canvas.height - m * 2);
   ctx.restore();
 }
 
-/** Outlines the selected panel so the user sees which photo they move. */
-function markSelectedPanel() {
-  const rects = panelRects(state.layout, canvas.width, canvas.height);
+// Outlines the selected panel so the user sees which photo they move.
+function outlineSelectedPanel() {
+  const rects = layoutPanels(state.layout, canvas.width, canvas.height);
   const rect = rects[state.selected];
   if (!rect) return;
   const ctx = canvas.getContext('2d');
@@ -103,7 +105,7 @@ function markSelectedPanel() {
   ctx.restore();
 }
 
-/** Fills every panel slot with one photo (its own crop per panel). */
+// Puts one photo in every panel slot, each keeping its own crop.
 export function fillAllPanels(img) {
   for (let i = 0; i < 4; i++) {
     state.photos[i] = { img, zoom: 1, ox: 0, oy: 0 };
@@ -178,25 +180,30 @@ function refreshOptions() {
 
 // Drag a panel's photo to pan it; scroll over it to zoom it.
 let dragging = null;
-canvas.addEventListener('pointerdown', (e) => {
+
+function canvasPoint(e) {
   const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  const rects = panelRects(state.layout, canvas.width, canvas.height);
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height),
+  };
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  const { x, y } = canvasPoint(e);
+  const rects = layoutPanels(state.layout, canvas.width, canvas.height);
   const hit = rects.findIndex((r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
   if (hit < 0) return;
   state.selected = hit;
   const photo = state.photos[hit] ?? state.photos.find((p) => p && p.img);
   if (!photo) return;
-  dragging = { photo, startX: x, startY: y, ox: photo.ox ?? 0, oy: photo.oy ?? 0, rect: rects[hit] };
+  dragging = { photo, startX: x, startY: y, ox: photo.ox || 0, oy: photo.oy || 0, rect: rects[hit] };
   canvas.setPointerCapture(e.pointerId);
   redraw();
 });
 canvas.addEventListener('pointermove', (e) => {
   if (!dragging) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const { x, y } = canvasPoint(e);
   dragging.photo.ox = Math.max(-0.6, Math.min(0.6, dragging.ox + (x - dragging.startX) / dragging.rect.w));
   dragging.photo.oy = Math.max(-0.6, Math.min(0.6, dragging.oy + (y - dragging.startY) / dragging.rect.h));
   redraw();
@@ -206,7 +213,8 @@ canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
   const photo = state.photos[state.selected] ?? state.photos.find((p) => p && p.img);
   if (!photo) return;
-  photo.zoom = Math.max(1, Math.min(3, (photo.zoom ?? 1) * (e.deltaY < 0 ? 1.1 : 0.9)));
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  photo.zoom = Math.max(1, Math.min(3, (photo.zoom || 1) * factor));
   redraw();
 }, { passive: false });
 
@@ -215,9 +223,12 @@ subtitleInput.addEventListener('input', () => { state.subtitle = subtitleInput.v
 
 document.getElementById('fill-all').addEventListener('click', async () => {
   const first = state.photos.find((p) => p && p.img);
-  if (first) { fillAllPanels(first.img); redraw(); return; }
-  const img = await loadImage('samples/pier.jpg');
-  fillAllPanels(img);
+  if (first) {
+    fillAllPanels(first.img);
+    redraw();
+    return;
+  }
+  fillAllPanels(await loadImage('samples/pier.jpg'));
   redraw();
 });
 document.getElementById('sample-pier').addEventListener('click', async () => {
@@ -233,14 +244,14 @@ document.getElementById('safezone').addEventListener('change', (e) => {
   redraw();
 });
 
-/** Renders the cover at full export size and downloads it as a PNG. */
+// Renders the cover at the full export size and downloads it as a PNG.
 export function exportCover() {
   const size = EXPORT_SIZES[state.sizeKey];
   const off = document.createElement('canvas');
   off.width = size.width;
   off.height = size.height;
-  drawCover(off, {
-    photos: activePhotos(),
+  renderCover(off, {
+    photos: visiblePhotos(),
     layout: state.layout,
     gradeKey: state.gradeKey,
     caption: state.caption,
@@ -263,7 +274,10 @@ if (shot) {
   buildSlotControls();
   refreshOptions();
   loadFonts().then(() => runShot(shot, new URLSearchParams(location.search), state, {
-    loadImage, fillAllPanels, redraw, setCaption: (c, s) => {
+    loadImage,
+    fillAllPanels,
+    redraw,
+    setCaption: (c, s) => {
       state.caption = c;
       state.subtitle = s ?? '';
       captionInput.value = c;

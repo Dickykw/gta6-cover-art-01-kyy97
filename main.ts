@@ -1,11 +1,11 @@
-// Vice Coast Cover Studio — a gta6-cover-art-01 entry (Node 22, standard
-// library only): the app is this directory's app/ folder, plain static files
-// a desktop browser loads offline (app/index.html and its ES modules, the
-// Bebas Neue / Oswald / Montserrat Alternates fonts vendored under app/fonts/
-// under the SIL Open Font License, no network request), and the program hands
-// it in. It copies app/ and screenshots/ from beside this file to /output and
-// writes /output/dossier.json, the summary the judge reads, with the vendored
-// make.fun library.
+// Vice Coast Cover Studio — the gta6-cover-art-01 entrypoint (Node 22,
+// standard library only). The app is this directory's app/ folder: plain
+// static files a desktop browser loads offline (app/index.html and its ES
+// modules, the Bebas Neue / Oswald / Montserrat Alternates fonts vendored
+// under app/fonts/ under the SIL Open Font License, no network request).
+// This program hands the entry in: it copies app/ and screenshots/ from
+// beside this file to /output and writes /output/dossier.json, the summary
+// the judge reads, with the vendored make.fun library.
 //
 // The app turns a photo and a caption into GTA 6-style cover art: a
 // multi-panel poster (triptych, hero + 2, grid, or full bleed), each panel's
@@ -39,7 +39,9 @@ if (shotFiles.length < 3 || shotFiles.length > 4) {
   throw new Error(`screenshots/ must hold 3 to 4 images, found ${shotFiles.length}`);
 }
 for (const file of shotFiles) {
-  const bytes = statSync(join(shotDir, file)).size;
+  const path = join(shotDir, file);
+  if (!statSync(path).isFile()) throw new Error(`screenshots/${file} is not a regular file`);
+  const bytes = statSync(path).size;
   if (bytes > 262144) throw new Error(`screenshots/${file} is ${bytes} bytes, over the 256 KiB cap`);
 }
 
@@ -51,7 +53,8 @@ if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), joi
 // The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
 // scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
 // files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
+// screenshots/ and dossier.json). The run is deterministic: same input
+// files, same dossier bytes, so the grader's two runs match byte for byte.
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
@@ -62,3 +65,4 @@ writeFileSync(
     app_path_max_bytes: 1000,
   }),
 );
+console.log(`handed in ${shotFiles.length} screenshots to ${out}`);

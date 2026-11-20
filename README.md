@@ -10,9 +10,9 @@ A GTA 6-style cover art maker for the [make.fun gta6-cover-art-01 bounty](https:
 
 - **Multi-panel poster** — Triptych (3 vertical panels), Hero + 2, Grid (4 panels), or Full bleed. Fill several panels with one photo or a different photo per panel.
 - **Any photo, positioned** — Click a panel to select it, drag to position the photo, scroll to zoom. A 5% safe-zone guide keeps the caption clear of the edges.
-- **Sunset / neon grades** — Sunset Vice, Neon Night, Palm Gold, Mono Noir: gradient-map colour grades over the panels, plus grain and vignette.
+- **Sunset / neon grades** — Sunset Vice, Neon Night, Palm Gold, Mono Noir: gradient colour grades over the panels, plus grain and vignette.
 - **Bold caption lettering** — Bebas Neue capitals with a neon pink stroke, cyan hairline and glow, an Oswald subtitle above, and a corner badge (GTA-6 / Vice Coast / Made with make.fun / off).
-- **Fast and easy** — Photo → caption → Export PNG. Three common post sizes: **1080 x 1080**, **1080 x 1350**, **1920 x 1080**.
+- **Fast and easy** — Photo → caption → Export PNG. Three common post sizes: **1080 × 1080**, **1080 × 1350**, **1920 × 1080**.
 
 ## Run it
 
@@ -34,6 +34,10 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
 `main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to `/output` and writes `/output/dossier.json` with the vendored `vendor/makefun-app.ts` library.
+
+## Screenshots
+
+`shots.json` lists the four screenshots in `screenshots/`: the exported square cover first, then the editor with a photo loaded, then the portrait and wide covers — each rendered by the app itself in headless Chrome from the `?shot=` scenes in `app/src/shots.js`.
 
 ## License
 
