@@ -1,44 +1,71 @@
-[![gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01)
-[![rank](https://make.fun/badge/gta6-cover-art-01/Dickykw/gta6-cover-art-01-kyy97/rank.svg)](https://make.fun/bounty/gta6-cover-art-01)
-[![reward](https://make.fun/badge/gta6-cover-art-01/Dickykw/gta6-cover-art-01-kyy97/reward.svg)](https://make.fun/bounty/gta6-cover-art-01)
+# Palm & Pistol — GTA 6 Cover Art Studio
 
-# Vice Coast Cover Studio
+[![make.fun competition](https://make.fun/api/competitions/gta6-cover-art-01/badge)](https://make.fun/bounty/gta6-cover-art-01)
+[![make.fun rank](https://make.fun/api/competitions/gta6-cover-art-01/badge/rank)](https://make.fun/bounty/gta6-cover-art-01)
+[![make.fun reward](https://make.fun/api/competitions/gta6-cover-art-01/badge/reward)](https://make.fun/bounty/gta6-cover-art-01)
 
-A GTA 6-style cover art maker for the [make.fun gta6-cover-art-01 bounty](https://make.fun/bounty/gta6-cover-art-01): an offline web app that turns your photo and a caption into a Vice City sunset poster, exported as a PNG to share.
+Turn your photos into GTA 6-style movie-poster key art — a framed crime-epic
+cover with **7 distinct characters**, a hero close-up, a review strip, a
+striped chrome title, a script subtitle, a gold BEST CAST seal, a movie
+billing block and a barcode. Built for the make.fun bounty
+[Make GTA 6 Cover Art](https://make.fun/bounty/gta6-cover-art-01).
 
 ## What it does
 
-- **Multi-panel poster** — Triptych (3 vertical panels), Hero + 2, Grid (4 panels), or Full bleed. Fill several panels with one photo or a different photo per panel.
-- **Any photo, positioned** — Click a panel to select it, drag to position the photo, scroll to zoom. A 5% safe-zone guide keeps the caption clear of the edges.
-- **Sunset / neon grades** — Sunset Vice, Neon Night, Palm Gold, Mono Noir: gradient colour grades over the panels, plus grain and vignette.
-- **Bold caption lettering** — Bebas Neue capitals with a neon pink stroke, cyan hairline and glow, an Oswald subtitle above, and a corner badge (GTA-6 / Vice Coast / Made with make.fun / off).
-- **Fast and easy** — Photo → caption → Export PNG. Three common post sizes: **1080 × 1080**, **1080 × 1350**, **1920 × 1080**.
+- Renders a 1024×576 poster on a canvas (deterministic — same inputs, same pixels).
+- **7 cast panels**: THE DRIVER, THE FIXER (large hero close-up, centre top),
+  THE MECHANIC, THE CAPTAIN, THE RIDER, THE BOSS, THE LOOKOUT. Every panel
+  crops to the face (face-aware focal-point crop), so no character is ever
+  cut off or duplicated.
+- **Review strip**: 5 gold stars + a press quote + gazette name, VOL. 1.
+- **Striped chrome title** (editable), pink script subtitle (editable),
+  tagline strip (editable).
+- **5 colour grades**: Sunset, Neon, Vice, Gold, Noir.
+- **Photo upload**: replace any cast member with your own photo; the crop
+  stays centred on the face.
+- **PNG export in 3 sizes**: 1024×576, 2048×1152, 512×288.
+- **Fully offline**: all photos and fonts are bundled locally. No CDN, no
+  network call at runtime.
 
 ## Run it
 
 ```sh
-node serve.ts
-# open http://localhost:8080
+# preview in the browser
+node serve.ts 8123
+# open http://localhost:8123/app/index.html
+
+# verify the whole entry (files, samples, fonts, badges, licence, offline)
+node main.ts
 ```
 
-`app/` is plain static files with no build step and no network request: every script, font and sample photo is a file under `app/`. Photos are read on your own machine and never uploaded.
+`main.ts` is the program entry: it checks every required file, validates
+each sample photo as a real JPEG, confirms the 7 samples are pairwise
+distinct, checks the fonts and OFL licence, verifies the 3 live make.fun
+badges in this README, the MIT licence + SPDX line, the payout wallet in
+`.makefun/owner.json`, and that the app code contains no external URL.
 
-## Fonts
+## Files
 
-Bebas Neue, Oswald and Montserrat Alternates, vendored under `app/fonts/` under the SIL Open Font License (`app/fonts/OFL.txt`). No Rockstar Games logo, wordmark, artwork, character or font is used anywhere.
+| Path | What it is |
+| --- | --- |
+| `app/index.html` | Studio page (poster canvas + controls) |
+| `app/style.css` | Studio styling (local fonts only) |
+| `app/src/cover.js` | Deterministic canvas poster renderer |
+| `app/src/main.js` | UI wiring: text, grades, upload, export |
+| `app/samples/*.jpg` | 7 sample cast photos (Pollinations FLUX, local) |
+| `app/fonts/*.ttf` | Bebas Neue, Oswald, Great Vibes (OFL 1.1) |
+| `main.ts` | Build + verify entry point |
+| `serve.ts` | Tiny static server for local preview |
+| `shots.json` | Screenshot manifest |
+| `screenshots/` | Real screenshots of the working app |
 
-## Hand in
+## Sample photos
 
-```sh
-mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-```
+The 7 bundled photos were generated with the free Pollinations image API
+(model FLUX) and saved locally — one distinct person per role, verified
+visually distinct. Replace any of them in the UI with your own photo.
 
-`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to `/output` and writes `/output/dossier.json` with the vendored `vendor/makefun-app.ts` library.
+## Licence
 
-## Screenshots
-
-`shots.json` lists the four screenshots in `screenshots/`: the exported square cover first, then the editor with a photo loaded, then the portrait and wide covers — each rendered by the app itself in headless Chrome from the `?shot=` scenes in `app/src/shots.js`.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Fonts under the SIL Open Font License 1.1
+(see `app/fonts/OFL.txt`).
