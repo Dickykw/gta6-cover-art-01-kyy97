@@ -1,8 +1,8 @@
 # Palm & Pistol — GTA 6 Cover Art Studio
 
-[![make.fun competition](https://make.fun/api/competitions/gta6-cover-art-01/badge)](https://make.fun/bounty/gta6-cover-art-01)
-[![make.fun rank](https://make.fun/api/competitions/gta6-cover-art-01/badge/rank)](https://make.fun/bounty/gta6-cover-art-01)
-[![make.fun reward](https://make.fun/api/competitions/gta6-cover-art-01/badge/reward)](https://make.fun/bounty/gta6-cover-art-01)
+[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![rank](https://make.fun/badge/gta6-cover-art-01/Dickykw/gta6-cover-art-01-kyy97/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![reward](https://make.fun/badge/gta6-cover-art-01/Dickykw/gta6-cover-art-01-kyy97/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
 Turn your photos into GTA 6-style movie-poster key art — a framed crime-epic
 cover with **7 distinct characters**, a hero close-up, a review strip, a
