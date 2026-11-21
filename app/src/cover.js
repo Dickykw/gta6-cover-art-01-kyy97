@@ -25,17 +25,33 @@
     { id: 'lookout',  label: 'THE LOOKOUT',  row: 1, hero: false },
   ];
 
-  // Face focal points (fractions of the sample photo, 512 x 612).
-  // Every sample photo is a portrait with the face in the upper third;
-  // the crop window is centred on the focal point so the face is never cut.
+  // Face focal points (fractions of the sample photo, 512 x 640, except
+  // fixer/captain at 512 x 612). These are HEAD centres: the crop window
+  // is centred on the head, and the focal y is chosen so the hair top
+  // stays inside the window with a clear margin — no head or hair may
+  // touch or cross a panel's top edge. The window is already the largest
+  // rect with the panel's aspect ratio (see coverRect), so the fix is
+  // the placement: centre on the head, never on the chin or chest.
+  // Measured head boxes (photo fractions, measured from the full-size
+  // photos, not thumbnails): driver hair top 0.18, eyes 0.28, chin
+  // 0.38; fixer hair top 0.03, eyes 0.33, chin 0.70 (photo padded to
+  // 760 wide so the crop window is tall enough for the face — focal y
+  // 0.355 centres the window on the face, chin sits behind the tag);
+  // mechanic 0.08/0.28/0.42; captain (hat) 0.02/0.55; rider 0.22/0.33/
+  // 0.47; boss hair top 0.13, eyes 0.20, chin 0.28 (wide shot, small
+  // face — the only way a whole face fits the very wide centre panel);
+  // lookout 0.16/0.33/0.48.
+  // BOSS face sits RIGHT of centre (x 0.59): the retro sunset sun
+  // overlaps the centre panel's left side, so her face must stay clear
+  // of it — the reference puts her face on the panel's right.
   var FOCAL = {
-    driver:   { x: 0.42, y: 0.30 },
-    fixer:    { x: 0.50, y: 0.34 },
-    mechanic: { x: 0.50, y: 0.30 },
-    captain:  { x: 0.56, y: 0.38 },
-    rider:    { x: 0.46, y: 0.27 },
-    boss:     { x: 0.52, y: 0.33 },
-    lookout:  { x: 0.56, y: 0.32 },
+    driver:   { x: 0.52, y: 0.28 },
+    fixer:    { x: 0.50, y: 0.45 },
+    mechanic: { x: 0.48, y: 0.28 },
+    captain:  { x: 0.56, y: 0.28 },
+    rider:    { x: 0.50, y: 0.46 },
+    boss:     { x: 0.59, y: 0.24 },
+    lookout:  { x: 0.52, y: 0.38 },
   };
 
   // Five colour grades. `filter` is a canvas 2D filter string applied when
@@ -117,10 +133,12 @@
       ctx.fillStyle = g.wash;
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     }
-    // Warm bottom shade so the name tag stays readable.
-    var shade = ctx.createLinearGradient(0, rect.y + rect.h * 0.55, 0, rect.y + rect.h);
+    // Warm bottom shade so the name tag stays readable. Kept light
+    // (0.35 max, starting at 65% height) so faces in the lower half
+    // stay visible — the old 0.55 shade swallowed chins.
+    var shade = ctx.createLinearGradient(0, rect.y + rect.h * 0.65, 0, rect.y + rect.h);
     shade.addColorStop(0, 'rgba(10,4,20,0)');
-    shade.addColorStop(1, 'rgba(10,4,20,0.55)');
+    shade.addColorStop(1, 'rgba(10,4,20,0.35)');
     ctx.fillStyle = shade;
     ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     ctx.restore();
@@ -195,6 +213,43 @@
     ctx.restore();
   }
 
+  // Retro striped sun: a setting-sun dome with horizontal slats cut
+  // through it, centred slightly left of middle under the tagline.
+  // It is drawn AFTER the bottom row so it sits in front of the centre
+  // panel's left side, the way the reference sun sits in front of the
+  // BOSS panel — her face is on the panel's right, clear of it.
+  function drawSunsetSun(ctx, s) {
+    var cx = 430 * s, horizon = 505 * s, r = 90 * s;
+    ctx.save();
+    // Clip to the band so nothing spills into the billing block.
+    ctx.beginPath();
+    ctx.rect(315 * s, 425 * s, 230 * s, 80 * s);
+    ctx.clip();
+    var g = ctx.createRadialGradient(cx, horizon, 6 * s, cx, horizon, r);
+    g.addColorStop(0, '#ffe9a8');
+    g.addColorStop(0.45, '#ffb347');
+    g.addColorStop(0.75, '#ff7a3d');
+    g.addColorStop(1, '#e0437a');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, horizon, r, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    // Cut the slats through the dome only: re-clip to the dome shape.
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, horizon, r, Math.PI, 0);
+    ctx.closePath();
+    ctx.clip();
+    var slats = [[440, 3], [455, 4], [470, 5], [485, 6], [498, 7]];
+    ctx.fillStyle = '#160818';
+    for (var i = 0; i < slats.length; i++) {
+      ctx.fillRect(315 * s, slats[i][0] * s, 230 * s, slats[i][1] * s);
+    }
+    ctx.restore();
+    ctx.restore();
+  }
+
   function drawSeal(ctx, s) {
     var cx = 946 * s, cy = 332 * s, r = 36 * s;
     ctx.save();
@@ -248,13 +303,12 @@
     var s = width / BASE_W;
     var W = BASE_W * s, H = BASE_H * s;
 
-    // --- backdrop: sunset gradient + vignette ---------------------------
+    // --- backdrop: near-black, like the reference — the panels carry the
+    // colour. The old magenta sunset gradient left a tall empty band.
     var bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0.00, '#2b0f3d');
-    bg.addColorStop(0.35, '#7a1e5c');
-    bg.addColorStop(0.62, '#e0437a');
-    bg.addColorStop(0.82, '#ff7a3d');
-    bg.addColorStop(1.00, '#ffb347');
+    bg.addColorStop(0.00, '#1c0a26');
+    bg.addColorStop(0.50, '#160818');
+    bg.addColorStop(1.00, '#200a24');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
     var vig = ctx.createRadialGradient(W / 2, H * 0.45, H * 0.3, W / 2, H * 0.5, H * 0.95);
@@ -286,8 +340,10 @@
     ctx.textAlign = 'left';
 
     // --- top row: 4 panels, FIXER is the wide hero -----------------------
-    var topY = 40 * s, topH = 204 * s;
-    var topWidths = [216, 356, 216, 216];
+    // Taller than before (224 vs 204) so the title can overlap its bottom
+    // edge the way the reference does, instead of floating in a band.
+    var topY = 40 * s, topH = 224 * s;
+    var topWidths = [200, 386, 200, 218];
     var x = 4 * s;
     var topRects = [];
     for (var i = 0; i < 4; i++) {
@@ -299,34 +355,53 @@
       drawPanel(ctx, s, images[ROLES[i].id], ROLES[i], topRects[i], state.grade);
     }
 
+    // --- middle band: dark, like the reference (the title overlaps the
+    // top row; the script/tagline sit in the dark band, centred slightly
+    // left of middle so the BOSS face on the right stays clear) ----------
+    ctx.save();
+    ctx.fillStyle = 'rgba(12,4,18,0.55)';
+    ctx.fillRect(0, 264 * s, W, 120 * s);
+    ctx.restore();
+
     // --- title band (overlaps the top row's bottom edge) -----------------
     drawTitle(ctx, s, state);
+    // Name tags back on top: the title overlaps the top row's bottom
+    // edge, and the tags must stay readable over the title letters,
+    // the way the reference draws THE FIXER over SUNDOWN RACKET.
+    for (i = 0; i < 4; i++) {
+      drawNameTag(ctx, s, topRects[i].x, topRects[i].y + topRects[i].h,
+        topRects[i].w, ROLES[i].label, ROLES[i].hero);
+    }
 
     // --- subtitle script + tagline strip ----------------------------------
+    // Bright neon pink (the old #ff9ecf washed out on the magenta band).
+    var midX = 430 * s;
     ctx.save();
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ff9ecf';
-    ctx.shadowColor = 'rgba(255,46,136,0.8)';
-    ctx.shadowBlur = 12 * s;
-    ctx.font = 40 * s + 'px "Great Vibes", cursive';
-    ctx.fillText(state.subtitle, W / 2, 366 * s);
+    ctx.fillStyle = '#ff5da2';
+    ctx.shadowColor = 'rgba(255,46,136,0.9)';
+    ctx.shadowBlur = 16 * s;
+    ctx.font = 42 * s + 'px "Great Vibes", cursive';
+    ctx.fillText(state.subtitle, midX, 356 * s);
     ctx.restore();
     var tag = state.tagline;
     ctx.save();
     ctx.font = '600 ' + 12.5 * s + 'px Oswald, sans-serif';
     var tagW = ctx.measureText(tag).width + 28 * s;
     ctx.fillStyle = 'rgba(255,46,136,0.92)';
-    var tagX = W / 2 - tagW / 2, tagY = 376 * s;
+    var tagX = midX - tagW / 2, tagY = 366 * s;
     ctx.fillRect(tagX, tagY, tagW, 20 * s);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(tag, W / 2, tagY + 10.5 * s);
+    ctx.fillText(tag, midX, tagY + 10.5 * s);
     ctx.restore();
 
     // --- bottom row: 3 panels, BOSS is the wide centre --------------------
-    var botY = 404 * s, botH = 108 * s;
-    var botWidths = [304, 400, 304];
+    // Taller (128 vs 108) and starts right under the tagline, so the row
+    // packs tight against the middle band like the reference.
+    var botY = 384 * s, botH = 128 * s;
+    var botWidths = [278, 505, 225];
     x = 4 * s;
     var botRects = [];
     for (i = 0; i < 3; i++) {
@@ -337,6 +412,9 @@
     for (i = 0; i < 3; i++) {
       drawPanel(ctx, s, images[ROLES[4 + i].id], ROLES[4 + i], botRects[i], state.grade);
     }
+
+    // --- retro sunset sun (in front of the BOSS panel's left side) -------
+    drawSunsetSun(ctx, s);
 
     // --- gold seal (overlaps title band / bottom row, right side) --------
     drawSeal(ctx, s);
